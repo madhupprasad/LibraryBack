@@ -8,5 +8,4 @@ def create_app():
     
     from .views import main
     app.register_blueprint(main)
-
     return app

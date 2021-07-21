@@ -101,7 +101,7 @@
                 "sha256:e4ef3cf497119ea76e794da8c55b21cadfe2d854b2f06c94d9a874b144f8f0b9"
             ],
             "index": "pypi",
-            "version": "==0.3.0"
+            "version": "==0.5.0"
         },
         "lxml": {
             "hashes": [
