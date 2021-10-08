@@ -1,4 +1,5 @@
 from datetime import timedelta
+from collections import Counter, defaultdict
 from flask import Blueprint, json, jsonify, request
 from libgen_api import LibgenSearch
 from .db import db
@@ -31,7 +32,8 @@ def removeBook():
         {"username" : data['userName']},
         { "$pull": {"data"  : { "ID" : data["item"]["ID"]}}}
     )
-    return jsonify({"msg":"Removed"}), 200
+    current_books = db.users.find_one({"username":data['userName']},{"_id":1, "username":1, "password" : 1, "data": 1})
+    return jsonify({"msg":"Removed" , "data":current_books["data"]}), 200
 
 
 @main.route('/python/getUserBooks' , methods=['POST'])
@@ -102,3 +104,49 @@ def signup():
 def protected():
     current_user = get_jwt_identity()
     return jsonify(current_user)
+
+@main.route("/python/getAllLikedBooks", methods=["GET"])
+def getAllLikedBooks():
+    retValue = list(db.users.find({},{"_id":1, "username":1, "password" : 1, "data" : 1}))
+    t = []
+    id_dict = {}
+    d = {}
+    for doc in retValue:
+        for books in doc["data"]:
+            curr_id = books['ID']
+            if curr_id in id_dict:
+                id_dict[curr_id]+=1
+                d[curr_id]["count"]=id_dict[curr_id]
+            else:
+                id_dict[curr_id] = 1
+                d[books['ID']] =  { "title" : books['Title'], "count" : id_dict[curr_id] }
+
+    ret = list(d.values())
+
+    ret.sort(key=lambda e : e['count'], reverse=True)
+
+    return jsonify(ret), 200
+
+@main.route("/python/postBlog", methods=["POST"])
+def postBlog():
+    data = request.get_json()
+    db.blog.insert_one(data)
+    arr= []
+    ret = list(db.blog.find({},{"_id":0, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+    for doc in ret:
+        arr.append(doc)
+    return jsonify(arr), 200
+
+@main.route("/python/getBlog", methods=["GET"])
+def getBlog():
+    data = request.get_json()
+    arr = []
+    if not data:
+        ret = list(db.blog.find({},{"_id":0, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+    else: 
+        ret = list(db.blog.find({"username" : data["username"]},{"_id":0, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+
+    for doc in ret:
+        arr.append(doc)
+
+    return jsonify(arr) , 200
