@@ -1,9 +1,15 @@
+from dotenv import load_dotenv
 from flask_pymongo import pymongo
 import certifi
+import os
+from os.path import join, dirname
 ca = certifi.where()
 
-CONNECTION_STRING = "mongodb+srv://madhu:madhu@cluster0.fudtl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
-client = pymongo.MongoClient(CONNECTION_STRING, tlsCAFile=ca)
+SECRET_KEY = os.environ.get("SECRET_KEY")
+
+client = pymongo.MongoClient(SECRET_KEY, tlsCAFile=ca)
 
 db = client.get_database('library')
