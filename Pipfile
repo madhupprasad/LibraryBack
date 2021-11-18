@@ -8,6 +8,7 @@ flask = "*"
 flask-sqlalchemy = "*"
 libgen-api = "*"
 flask-cors = "*"
+flask-socketio = "*"
 
 [dev-packages]
 

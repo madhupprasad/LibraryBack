@@ -7,10 +7,13 @@ from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity,
 )
-
+from bson import json_util
+from bson.objectid import ObjectId
 
 main = Blueprint('main', __name__)
 
+def parse_json(data):
+    return json.loads(json_util.dumps(data))
 
 @main.route('/python/addBook' , methods=['POST'])
 def addBook():
@@ -142,11 +145,18 @@ def getBlog():
     data = request.get_json()
     arr = []
     if not data:
-        ret = list(db.blog.find({},{"_id":0, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+        ret = list(db.blog.find({},{"_id":1, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
     else: 
-        ret = list(db.blog.find({"username" : data["username"]},{"_id":0, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+        ret = list(db.blog.find({"username" : data["username"]},{"_id":1, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+    ret = parse_json(ret)
+    # print(ret)
+    return jsonify(ret) , 200
 
-    for doc in ret:
-        arr.append(doc)
-
-    return jsonify(arr) , 200
+@main.route('/python/deleteBlog' , methods=['POST'])
+def deleteBlog():
+    data = request.get_json()
+    # print(data)
+    res = db.blog.delete_one( { "_id": ObjectId(data["id"]) } )
+    ret = list(db.blog.find({},{"_id":1, "username":1, "title" : 1, "content" : 1, "rating" : 1}))
+    ret = parse_json(ret)
+    return jsonify({ 'msg' : "deleted" , 'data' : ret}), 200
